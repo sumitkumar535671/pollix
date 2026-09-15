@@ -1,8 +1,10 @@
 import http from "node:http";
 import { createServerApplication } from "./app.js";
+import { connectDb } from "./shared/config/db.js";
 
 async function main() {
     try {
+        await connectDb();
         const PORT = process.env.PORT || 8080;
         const server = http.createServer(createServerApplication());
 
