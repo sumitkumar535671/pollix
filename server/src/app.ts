@@ -6,11 +6,17 @@ import { inngest } from "./inngest/client.js";
 import {heathFunction} from "./inngest/functions.js";
 import 'dotenv/config';
 
+import {clerkMiddleware} from "@clerk/express";
+import cookieParser from "cookie-parser";
+
 export function createServerApplication() {
     console.log(process.env.INNGEST_DEV);
     const app = express();
 
     app.use(express.json());
+    app.use(cookieParser());
+    app.use(clerkMiddleware());
+
     app.use("/api/inngest", serve({
         client:inngest,
         functions:[heathFunction]
