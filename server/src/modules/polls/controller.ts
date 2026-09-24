@@ -7,6 +7,7 @@ import { getAuth } from "@clerk/express";
 import User from "../auth/model.js";
 import Question from "../questions/model.js";
 import { emitPollPublished } from "../../shared/socket/emitter.js";
+import { inngest } from "../../inngest/client.js";
 
 export async function handleGetAllPolls(
     req:Request,
@@ -99,6 +100,13 @@ export async function handleCreatePoll(
     });
 
     await createdPoll.save();
+     
+    await inngest.send({
+        name: "poll/created",
+        data: {
+            title:title,
+        },
+    });
 
     const createdQuestions = await Question.insertMany(
         questions.map((question,index)=>({
@@ -141,6 +149,15 @@ export async function handlePublishPoll(
     await poll.save();
 
     emitPollPublished(poll._id.toString(),poll.publishedAt);
+
+    await inngest.send({
+        name: "poll/published",
+        data: {
+            pollId: poll._id.toString(),
+            title: poll.title,
+            publishedAt: poll.publishedAt,
+        },
+    });
 
     return ApiResponse.success(res, "poll published successfully",{
         poll,
