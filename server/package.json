@@ -18,7 +18,9 @@
     "dependencies": {
         "@clerk/express": "^2.1.69",
         "cookie-parser": "^1.4.7",
+        "dotenv": "^18.0.3",
         "express": "^5.2.1",
+        "inngest": "^4.21.0",
         "mongoose": "^9.10.2",
         "zod": "^4.6.5"
     },

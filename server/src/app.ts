@@ -6,6 +6,9 @@ import { inngest } from "./inngest/client.js";
 import {heathFunction} from "./inngest/functions.js";
 import 'dotenv/config';
 
+import authRoutes from "./modules/auth/routes.js";
+import pollRoutes from "./modules/polls/routes.js";
+
 import {clerkMiddleware} from "@clerk/express";
 import cookieParser from "cookie-parser";
 
@@ -29,7 +32,10 @@ export function createServerApplication() {
             data:{}
         })
         res.status(200).json({message:true});
-    })
+    });
+
+    app.use("/api/auth", authRoutes);
+    app.use("/api/polls", pollRoutes);
     return app;
 }
 
