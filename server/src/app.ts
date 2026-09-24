@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 
 import { serve } from "inngest/express";
 import { inngest } from "./inngest/client.js";
-import {heathFunction, pollCreatedFunction, pollPublishedFunction} from "./inngest/functions.js";
+import {heathFunction, pollAnalyticsUpdatedFunction, pollCreatedFunction, pollDeletedFunction, pollPublishedFunction, pollResponseSubmittedFunction} from "./inngest/functions.js";
 import 'dotenv/config';
 
 import authRoutes from "./modules/auth/routes.js";
@@ -33,7 +33,9 @@ export function createServerApplication() {
 
     app.use("/api/inngest", serve({
         client:inngest,
-        functions:[heathFunction,pollCreatedFunction,pollPublishedFunction]
+        functions:[heathFunction,pollCreatedFunction,pollPublishedFunction,pollResponseSubmittedFunction,
+            pollAnalyticsUpdatedFunction,pollDeletedFunction
+        ]
     }));
 
     app.get("/health",async(req:Request,res:Response)=>{

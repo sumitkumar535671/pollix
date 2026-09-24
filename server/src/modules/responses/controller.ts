@@ -11,6 +11,7 @@ import env from "../../shared/config/env.js";
 import ApiResponse from "../../shared/utils/ApiResponse.js";
 import { computeAnalytics } from "../analytics/service.js";
 import { emitAnalyticsUpdate } from "../../shared/socket/emitter.js";
+import { inngest } from "../../inngest/client.js";
 
 
 export async function handlePostResponse(
@@ -116,8 +117,19 @@ export async function handlePostResponse(
     ApiResponse.success(res,"Response recorded successfully",{
         response:createResponse,
     });
+    
+    await inngest.send({
+        name: "poll/response-submitted",
+        data: {
+            pollId: poll._id,
+            userId: user?._id ?? null,
+            anonymousTokenHash,
+            answers,
+        }
+    });
 
     const analytics = await computeAnalytics(poll._id);
+
     emitAnalyticsUpdate(poll._id.toString(), {
         poll,
         ...analytics,
@@ -130,6 +142,13 @@ export async function handlePostResponse(
 
             ...analytics.insights,
         },
+    });
+    await inngest.send({
+        name: "poll/analytics-updated",
+        data: {
+            pollId: poll._id,
+            ...analytics,
+        }
     });
 
     return;

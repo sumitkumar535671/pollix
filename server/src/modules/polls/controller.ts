@@ -187,6 +187,13 @@ export async function handleDeletePoll(
         Response.deleteMany({ poll: poll._id }),
     ]);
     await poll.deleteOne();
+    
+    await inngest.send({
+        name: "poll/deleted",
+        data: {
+            title: poll.title,
+        },
+    });
 
     return ApiResponse.success(res, "Poll deleted successfully", null);
 }
