@@ -12,7 +12,7 @@ export async function validatePollAnswers(
 ) {
     const questions = await Question.find({poll:pollId});
 
-    const questionMap = new Map(questions.map((question)=> [question._id.toString(),question])),
+    const questionMap = new Map(questions.map((question)=> [question._id.toString(),question]))
 
     for(const answer of answers){
         const question = questionMap.get(answer.question);
