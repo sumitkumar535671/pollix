@@ -1,5 +1,14 @@
 import { Link } from "react-router";
-import { Copy, BarChart2, Eye, Send } from "lucide-react";
+import { useState } from "react";
+import {
+    AlertTriangle,
+    BarChart2,
+    Copy,
+    Eye,
+    Send,
+    Trash2,
+    X,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Poll } from "../../modules/polls/types";
 import {
@@ -16,13 +25,18 @@ interface PollCardProps {
     poll: Poll;
     onPublish?: (pollId: string) => Promise<void>;
     isPublishing?: boolean;
+    onDelete?: (pollId: string) => Promise<void>;
+    isDeleting?: boolean;
 }
 
 export function PollCard({
     poll,
     onPublish,
     isPublishing = false,
+    onDelete,
+    isDeleting = false,
 }: PollCardProps) {
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const isPublished = !!poll.publishedAt;
     const isExpired = !isPublished && new Date(poll.expiresAt) < new Date();
     const statusLabel = isPublished
@@ -42,8 +56,14 @@ export function PollCard({
         toast.success("Link copied to clipboard");
     };
 
+    const handleDelete = () => {
+        if (!onDelete || isDeleting) return;
+        void onDelete(poll._id);
+    };
+
     return (
-        <Card className="flex flex-col h-full hover:shadow-lg transition-shadow">
+        <>
+            <Card className="flex flex-col h-full hover:shadow-lg transition-shadow">
             <CardHeader>
                 <div className="flex justify-between items-start mb-2">
                     <CardTitle className="text-xl line-clamp-1">
@@ -99,6 +119,18 @@ export function PollCard({
                             <Send className="w-4 h-4" />
                         </Button>
                     )}
+                    {onDelete && (
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                            title="Delete Poll"
+                            aria-label={`Delete ${poll.title}`}
+                            disabled={isDeleting}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    )}
                 </div>
                 <Link to={`/polls/${poll._id}/analytics`} className="w-full">
                     <Button variant="secondary" size="sm" className="w-full">
@@ -107,6 +139,71 @@ export function PollCard({
                     </Button>
                 </Link>
             </CardFooter>
-        </Card>
+            </Card>
+
+            {isDeleteDialogOpen && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm"
+                    role="presentation"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            setIsDeleteDialogOpen(false);
+                        }
+                    }}
+                >
+                    <div
+                        className="w-full max-w-md rounded-3xl border border-foreground/10 bg-card p-6 text-card-foreground shadow-2xl sm:p-8"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby={`delete-poll-title-${poll._id}`}
+                        aria-describedby={`delete-poll-description-${poll._id}`}
+                    >
+                        <div className="mb-6 flex items-start justify-between gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+                                <AlertTriangle className="h-6 w-6" />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsDeleteDialogOpen(false)}
+                                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                                aria-label="Close delete confirmation"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <h2
+                            id={`delete-poll-title-${poll._id}`}
+                            className="text-2xl font-bold tracking-tight"
+                        >
+                            Delete this poll?
+                        </h2>
+                        <p
+                            id={`delete-poll-description-${poll._id}`}
+                            className="mt-3 leading-7 text-muted-foreground"
+                        >
+                            <span className="font-semibold text-foreground">{poll.title}</span>{" "}
+                            and all of its questions and responses will be permanently removed.
+                        </p>
+                        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsDeleteDialogOpen(false)}
+                                disabled={isDeleting}
+                            >
+                                Keep poll
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {isDeleting ? "Deleting..." : "Delete poll"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

@@ -1,4 +1,4 @@
-import { type Request, type Response, type NextFunction, text } from "express";
+import { type Request, type Response as ExResponse, type NextFunction, text } from "express";
 import Poll from "./model.js";
 import ApiResponse from "../../shared/utils/ApiResponse.js";
 import type { CreatePollSchemaType, PollIdParamSchemaType } from "./schemas.js";
@@ -6,12 +6,13 @@ import ApiError from "../../shared/utils/ApiError.js";
 import { getAuth } from "@clerk/express";
 import User from "../auth/model.js";
 import Question from "../questions/model.js";
+import Response from "../responses/model.js";
 import { emitPollPublished } from "../../shared/socket/emitter.js";
 import { inngest } from "../../inngest/client.js";
 
 export async function handleGetAllPolls(
     req:Request,
-    res:Response,
+    res:ExResponse,
     next:NextFunction,
 ) {
     const polls = await Poll.find({creator:req.user!._id})
@@ -27,7 +28,7 @@ export async function handleGetAllPolls(
 
 export async function handleGetPoll(
     req:Request,
-    res:Response,
+    res:ExResponse,
     next:NextFunction,
 ) {
     const {pollId} = (req.validated as PollIdParamSchemaType).params;
@@ -86,7 +87,7 @@ export async function handleGetPoll(
 
 export async function handleCreatePoll(
     req:Request,
-    res:Response,
+    res:ExResponse,
     next:NextFunction,
 ) {
     const {title,description,responseAccess,expiresAt,questions} = (req.validated as CreatePollSchemaType).body;
@@ -126,7 +127,7 @@ export async function handleCreatePoll(
 
 export async function handlePublishPoll(
     req:Request,
-    res:Response,
+    res:ExResponse,
     next:NextFunction,
 ) {
     const {pollId} = (req.validated as PollIdParamSchemaType).params;
@@ -162,4 +163,30 @@ export async function handlePublishPoll(
     return ApiResponse.success(res, "poll published successfully",{
         poll,
     });
+}
+
+export async function handleDeletePoll(
+    req: Request,
+    res: ExResponse,
+    next: NextFunction,
+) {
+    const { pollId } = (req.validated as PollIdParamSchemaType).params;
+
+    const poll = await Poll.findById(pollId);
+
+    if (!poll) {
+        throw ApiError.notFound("Poll not found");
+    }
+
+    if (!poll.creator.equals(req.user!._id)) {
+        throw ApiError.forbidden("You are not allowed to delete this poll");
+    }
+
+    await Promise.all([
+        Question.deleteMany({ poll: poll._id }),
+        Response.deleteMany({ poll: poll._id }),
+    ]);
+    await poll.deleteOne();
+
+    return ApiResponse.success(res, "Poll deleted successfully", null);
 }

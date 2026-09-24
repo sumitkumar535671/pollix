@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { PlusCircle, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
-import { getPolls, publishPoll } from "../api";
+import { deletePoll, getPolls, publishPoll } from "../api";
 import type { Poll } from "../types";
 import { PollCard } from "../../../shared/components/PollCard";
 import { Button } from "../../../shared/components/Button";
@@ -15,6 +15,7 @@ export default function DashboardPage() {
     const [publishingPollId, setPublishingPollId] = useState<string | null>(
         null,
     );
+    const [deletingPollId, setDeletingPollId] = useState<string | null>(null);
 
     useEffect(() => {
         async function loadPolls() {
@@ -49,6 +50,21 @@ export default function DashboardPage() {
             toast.error(getApiErrorMessage(err, "Failed to publish poll"));
         } finally {
             setPublishingPollId(null);
+        }
+    };
+
+    const handleDelete = async (pollId: string) => {
+        try {
+            setDeletingPollId(pollId);
+            await deletePoll(pollId);
+            setPolls((previousPolls) =>
+                previousPolls.filter((poll) => poll._id !== pollId),
+            );
+            toast.success("Poll deleted successfully");
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, "Failed to delete poll"));
+        } finally {
+            setDeletingPollId(null);
         }
     };
 
@@ -119,6 +135,8 @@ export default function DashboardPage() {
                             poll={poll}
                             onPublish={handlePublish}
                             isPublishing={publishingPollId === poll._id}
+                            onDelete={handleDelete}
+                            isDeleting={deletingPollId === poll._id}
                         />
                     ))}
                 </div>

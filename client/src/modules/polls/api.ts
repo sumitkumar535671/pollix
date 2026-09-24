@@ -37,6 +37,10 @@ export async function publishPoll(pollId: string) {
     return data.data.poll;
 }
 
+export async function deletePoll(pollId: string) {
+    await api.delete(`/api/polls/${pollId}`);
+}
+
 export async function submitPollResponse(
     pollId: string,
     payload: PollResponsePayload,

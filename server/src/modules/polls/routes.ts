@@ -1,6 +1,6 @@
 import requireAuth  from "../../shared/middlewares/requireAuth.js";
 import {Router} from "express";
-import { handleCreatePoll, handleGetAllPolls, handleGetPoll, handlePublishPoll } from "./controller.js";
+import { handleCreatePoll, handleDeletePoll, handleGetAllPolls, handleGetPoll, handlePublishPoll } from "./controller.js";
 import validate from "../../shared/middlewares/validate.js";
 import { createPollSchema, pollIdParamSchema } from "./schemas.js";
 
@@ -17,6 +17,7 @@ router
 router.get("/:pollId",validate(pollIdParamSchema),handleGetPoll)
 
 router.patch("/:pollId/publish",requireAuth,validate(pollIdParamSchema),handlePublishPoll)
+router.delete("/:pollId",requireAuth,validate(pollIdParamSchema),handleDeletePoll)
 
 router.use("/:pollId/responses", responseRoutes);
 router.use("/:pollId/analytics", analyticsRoutes);
