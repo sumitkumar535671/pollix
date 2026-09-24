@@ -4,6 +4,9 @@ import { handleCreatePoll, handleGetAllPolls, handleGetPoll, handlePublishPoll }
 import validate from "../../shared/middlewares/validate.js";
 import { createPollSchema, pollIdParamSchema } from "./schemas.js";
 
+import responseRoutes from "../responses/routes.js";
+import analyticsRoutes from "../analytics/routes.js";
+
 const router = Router();
 
 router
@@ -15,7 +18,7 @@ router.get("/:pollId",validate(pollIdParamSchema),handleGetPoll)
 
 router.patch("/:pollId/publish",requireAuth,validate(pollIdParamSchema),handlePublishPoll)
 
-// router.use("/:pollId/responses", responseRoutes);
-// router.use("/:pollId/analytics", analyticsRoutes);
+router.use("/:pollId/responses", responseRoutes);
+router.use("/:pollId/analytics", analyticsRoutes);
 
 export default router

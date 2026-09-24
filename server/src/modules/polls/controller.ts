@@ -6,6 +6,7 @@ import ApiError from "../../shared/utils/ApiError.js";
 import { getAuth } from "@clerk/express";
 import User from "../auth/model.js";
 import Question from "../questions/model.js";
+import { emitPollPublished } from "../../shared/socket/emitter.js";
 
 export async function handleGetAllPolls(
     req:Request,
@@ -139,7 +140,7 @@ export async function handlePublishPoll(
     poll.publishedAt = new Date();
     await poll.save();
 
-    //emitPollPublished(poll._id.toString(),poll.publishedAt);
+    emitPollPublished(poll._id.toString(),poll.publishedAt);
 
     return ApiResponse.success(res, "poll published successfully",{
         poll,

@@ -10,6 +10,7 @@ import { generateAnonymousToken, hashAnonymousToken } from "./utils.js";
 import env from "../../shared/config/env.js";
 import ApiResponse from "../../shared/utils/ApiResponse.js";
 import { computeAnalytics } from "../analytics/service.js";
+import { emitAnalyticsUpdate } from "../../shared/socket/emitter.js";
 
 
 export async function handlePostResponse(
@@ -117,19 +118,19 @@ export async function handlePostResponse(
     });
 
     const analytics = await computeAnalytics(poll._id);
-    // emitAnalyticsUpdate(poll._id.toString(), {
-    //     poll,
-    //     ...analytics,
-    //     insights: {
-    //         status: poll.publishedAt
-    //             ? "published"
-    //             : poll.expiresAt < new Date()
-    //               ? "expired"
-    //               : "active",
+    emitAnalyticsUpdate(poll._id.toString(), {
+        poll,
+        ...analytics,
+        insights: {
+            status: poll.publishedAt
+                ? "published"
+                : poll.expiresAt < new Date()
+                  ? "expired"
+                  : "active",
 
-    //         ...analytics.insights,
-    //     },
-    // });
+            ...analytics.insights,
+        },
+    });
 
     return;
 }
