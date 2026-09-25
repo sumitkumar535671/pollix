@@ -12,7 +12,7 @@ import {
     Users,
 } from "lucide-react";
 import { Button } from "../../../shared/components/Button";
-import { useAuth, SignInButton, SignUpButton } from "@clerk/react";
+import { useAuth, SignUpButton } from "@clerk/react";
 
 const choices = ["Ship it this week", "Polish it a little", "Ask the team"];
 
